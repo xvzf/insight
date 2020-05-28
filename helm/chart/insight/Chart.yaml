@@ -1,0 +1,23 @@
+apiVersion: v2
+name: insight
+description: Insight deployment for Kubernetes flow monitoring
+maintainers:
+- name: xvzf
+  email: matthias.riegler@daimler.com
+
+type: application
+version: 0.1.0
+appVersion: v1.1.4
+dependencies:
+- name: elasticsearch
+  repository: https://helm.elastic.co
+  version: 7.6.1
+- name: logstash
+  repository: https://helm.elastic.co
+  version: 7.6.1
+- name: kibana
+  repository: https://helm.elastic.co
+  version: 7.6.1
+- name: memcached
+  repository: https://charts.bitnami.com/bitnami
+  version: 4.2.1

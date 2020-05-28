@@ -1,0 +1,14 @@
+kibana:
+  ingress:
+    annotations:
+      cert-manager.io/issuer: letsencrypt
+    enabled: true
+    hosts:
+    - insight.18.184.238.83.xip.io
+
+elasticsearch:
+  replicas: 3
+  esJavaOpts: "-Xmx4096m -Xms4096m"
+
+  ingress:
+    enabled: false

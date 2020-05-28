@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgres.fullname" . }}-dbinit
+  labels:
+    {{- include "postgres.labels" . | nindent 4 }}
+data:
+  01-init.sh: |
+    #!/bin/sh -eu
+
+    # Creates the insight database and the insight user (w/o password for now)
+    echo "[+] Creating user and database insight"
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-eosql
+        CREATE USER insight;
+        CREATE DATABASE insight;
+        GRANT ALL PRIVILEGES ON DATABASE insight TO insight;
+    eosql
+  02-table.sh: |
+    #! /bin/sh -eu
+
+    psql --username insight insight <<-eosql
+      \\set VERBOSITY terse
+      \\set ON_ERROR_STOP true
+
+      do language plpgsql \$\$ begin
+
+      raise notice '[+] Creating pods schema';
+      do \$pods\$ begin
+        -- no unique constraint on the IP since Pods running in the host network space will have
+        -- the same IP address (of the node)
+        create table if not exists pods (
+          uid UUID primary key
+          , name text not null
+          , namespace text not null
+          , ip inet
+          , definition jsonb not null
+        );
+        -- Not required
+        -- create index idx_pods_uid on pods (uid);
+        -- create index idx_pods_ip on pods (ip);
+        -- create index idx_pods_name on pods (name);
+        -- create index idx_pods_namespace on pods (namespace);
+        -- Index for containment queries
+        create index idx_pods_definition on pods using gin (definition jsonb_path_ops);
+      end \$pods\$;
+
+      raise notice '[+] Creating services schema';
+      do \$services\$ begin
+        create table if not exists services (
+          uid UUID primary key
+          , name text not null
+          , cluster_ip inet
+          , namespace text not null
+          , definition jsonb not null
+        );
+        -- Not required
+        -- create index idx_services_uid on services (uid);
+        -- create index idx_services_name on services (name);
+        -- create index idx_services_namespace on services (namespace);
+        create index idx_services_definition on services using gin (definition jsonb_path_ops);
+      end \$services\$;
+
+      raise notice '[+] Creating endpoints schema';
+      do \$endpoints\$ begin
+        create table if not exists endpoints (
+          uid UUID primary key
+          , name text not null
+          , namespace text not null
+          , definition jsonb not null
+        );
+        --create index idx_endpoints_name on endpoints (name);
+        --create index idx_endpoints_namespace on endpoints (namespace);
+        create index idx_endpoints_definition on endpoints using gin (definition jsonb_path_ops);
+      end \$endpoints\$;
+
+    end \$\$
+    eosql

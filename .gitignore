@@ -1,0 +1,14 @@
+*.pem
+*.jar
+*.lock
+*.tgz
+*venv/
+*.pyc
+*__pycache__/
+.vscode/
+*.crt
+*.csr
+*.key
+*.crt
+*.key
+*.srl

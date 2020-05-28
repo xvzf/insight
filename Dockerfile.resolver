@@ -1,0 +1,19 @@
+FROM golang:1.13-alpine as builder
+
+WORKDIR /app
+
+copy . .
+
+# Build application
+RUN go get -d -v ./...
+RUN go build cmd/resolver/resolver.go
+
+
+# Generate a smaller docker image without build dependencies
+FROM alpine:3.11
+
+# Install conntrack tools
+RUN apk add --update conntrack-tools && rm -rf /var/cache/apk/*
+
+COPY --from=builder /app/resolver /resolver
+ENTRYPOINT ["/resolver"]

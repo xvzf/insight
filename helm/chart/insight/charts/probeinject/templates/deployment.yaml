@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "probeinject.fullname" . }}
+  labels:
+    {{- include "probeinject.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "probeinject.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "probeinject.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "probeinject.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+          - name: certs
+            mountPath: /certs
+            readOnly: true
+          ports:
+          - name: https
+            containerPort: 8443
+            protocol: TCP
+          env:
+          - name: TLS_CERT_FILE
+            value: /certs/cert.pem
+          - name: TLS_KEY_FILE
+            value: /certs/key.pem
+          - name: LOGSTASH
+            value: "http://{{ .Release.Name }}-logstash.{{ .Release.Namespace }}.svc.cluster.local:8080/"
+          - name: PROBE_IMAGE
+            value: "{{ .Values.probeImage.repository }}:{{ .Values.probeImage.tag}}"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+      - name: certs
+        secret:
+          secretName: {{ include "probeinject.fullname" . }}-certs

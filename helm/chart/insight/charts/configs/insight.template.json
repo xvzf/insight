@@ -1,0 +1,215 @@
+{
+  "index_patterns": ["insight-1.0.0-*"],
+  "settings": {
+    "index": {
+      "number_of_shards": 3,
+      "number_of_replicas": 0,
+      "refresh_interval": "10s",
+      "codec": "best_compression",
+      "mapping": {
+        "total_fields": {
+          "limit": "10000"
+        }
+      },
+      "query": {
+        "default_field": [
+          "source.*",
+          "source.kubernetes.pod.labels.*",
+          "source.kubernetes.service.labels.*",
+          "destination.*",
+          "destination.kubernetes.pod.labels.*",
+          "destination.kubernetes.service.labels.*",
+          "network.*"
+        ]
+      }
+    }
+  },
+  "mappings": {
+    "numeric_detection": true,
+    "properties": {
+      "@timestamp": {"type": "date"},
+      "@version": {"type": "keyword"},
+      "type": {"type": "keyword"},
+      "host": {"type": "ip"},
+      "event": {
+        "type": "object",
+        "properties": {
+          "kind": {"type": "keyword"},
+          "category": {"type": "keyword"},
+          "action": {"type": "keyword"},
+          "dataset": {"type": "keyword"},
+          "duration": {"type": "long"},
+          "start": {"type": "date"},
+          "end": {"type": "date"}
+        }
+      },
+      "agent": {
+        "type": "object",
+        "properties": {
+          "hostname": {"type": "keyword"},
+          "type": {"type": "keyword"}
+        }
+      },
+      "source": {
+        "type": "object",
+        "properties": {
+          "kubernetes": {
+            "type": "object",
+            "properties": {
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "pod": {
+                    "type": "object",
+                    "properties": {
+                      "labels.*": {
+                        "type": "keyword"
+                      },
+                      "annotations.*": {
+                        "type": "keyword"
+                      }
+                    }
+                  },
+                  "service": {
+                    "type": "object",
+                    "properties": {
+                      "labels.*": {
+                        "type": "keyword"
+                      },
+                      "annotations.*": {
+                        "type": "keyword"
+                      }
+                    }
+                  },
+                  "pods": {
+                    "type": "nested",
+                    "properties": {
+                      "labels.*": {
+                        "type": "keyword"
+                      },
+                      "annotations.*": {
+                        "type": "keyword"
+                      }
+                    }
+                  },
+                  "services": {
+                    "type": "nested",
+                    "properties": {
+                      "labels.*": {
+                        "type": "keyword"
+                      },
+                      "annotations.*": {
+                        "type": "keyword"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "geo": {
+            "dynamic": true,
+            "type": "object",
+            "properties": {
+              "city_name": {"type": "keyword"},
+              "country_name": {"type": "keyword"},
+              "location": {"type": "geo_point"},
+              "ip": {"type": "ip"}
+            }
+          },
+          "ip": {"type": "ip"},
+          "port": {"type": "integer"},
+          "address": {"type": "keyword"},
+          "packets": {"type": "long"},
+          "bytes": {"type": "long"}
+        }
+      },
+      "destination": {
+        "type": "object",
+        "properties": {
+          "kubernetes": {
+            "type": "object",
+            "properties": {
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "pod": {
+                    "type": "object",
+                    "properties": {
+                      "labels.*": {
+                        "type": "keyword"
+                      },
+                      "annotations.*": {
+                        "type": "keyword"
+                      }
+                    }
+                  },
+                  "service": {
+                    "type": "object",
+                    "properties": {
+                      "labels.*": {
+                        "type": "keyword"
+                      },
+                      "annotations.*": {
+                        "type": "keyword"
+                      }
+                    }
+                  },
+                  "pods": {
+                    "type": "nested",
+                    "properties": {
+                      "labels.*": {
+                        "type": "keyword"
+                      },
+                      "annotations.*": {
+                        "type": "keyword"
+                      }
+                    }
+                  },
+                  "services": {
+                    "type": "nested",
+                    "properties": {
+                      "labels.*": {
+                        "type": "keyword"
+                      },
+                      "annotations.*": {
+                        "type": "keyword"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "geo": {
+            "dynamic": true,
+            "type": "object",
+            "properties": {
+              "city_name": {"type": "keyword"},
+              "country_name": {"type": "keyword"},
+              "location": {"type": "geo_point"},
+              "ip": {"type": "ip"}
+            }
+          },
+          "ip": {"type": "ip"},
+          "port": {"type": "integer"},
+          "address": {"type": "keyword"},
+          "packets": {"type": "long"},
+          "bytes": {"type": "long"}
+        }
+      },
+      "network": {
+        "type": "object",
+        "properties": {
+          "community_id": {"type": "keyword"},
+          "bytes": {"type": "long"},
+          "packets": {"type": "long"},
+          "type": {"type": "keyword"}
+        }
+      },
+      "tags": {
+        "type": "keyword"
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+Kubeagent is an internal application which does not provide an API

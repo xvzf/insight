@@ -1,0 +1,10 @@
+# Cut down pipeline & removed daimler sensitive data
+kind: pipeline
+name: insight-testing
+steps:
+  - name: run-test
+    image: golang
+    commands:
+      - curl -sL https://taskfile.dev/install.sh | sh
+      - apt update --yes && apt install --yes libpcap-dev
+      - ./bin/task

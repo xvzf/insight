@@ -1,0 +1,22 @@
+
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "probeinject.fullname" . }}
+  labels:
+    {{- include "probeinject.labels" . | nindent 4 }}
+webhooks:
+  - name: webhook-service.default.svc
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        name: {{ include "probeinject.fullname" . }}
+        namespace: {{ .Release.Name }}
+        path: "/inject"
+      #this is base64 encode of rootCA.crt `cat rootCA.crt | base64 | tr -d '\n'`
+      caBundle: {{ .Values.secret.caBundle }}
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]

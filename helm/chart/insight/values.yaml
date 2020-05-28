@@ -1,0 +1,61 @@
+global:
+  kubestatestore:
+    serviceName: "insight-kubestatestore-postgresql"
+
+elasticsearch: {}
+  # Limit size
+  # esJavaOpts: "-Xmx1024m -Xms1024m"
+
+kibana: {}
+  # ingress:
+  #   enabled: true
+  #   hosts:
+  #     - insight.172.16.0.126.xip.io
+
+logstash:
+  logstashJavaOpts: "-Xmx512m -Xms512m"
+
+  # Services for the flow
+  service:
+    type: ClusterIP
+    ports:
+    - name: flow
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  
+  logstashConfig:
+    # 0.0.0.0 is required - if not set, readiness probes will fail
+    logstash.yml: |
+      http.host: "0.0.0.0"
+      config:
+        debug: true
+        # This took me hours...
+        support_escapes: true
+      xpack:
+        monitoring:
+          enabled: true
+          elasticsearch:
+            hosts: [ "http://elasticsearch-master:9200" ]
+
+    pipelines.yml: |
+      - pipeline.id: insight
+        path.config: /usr/share/logstash/insight/insight.conf
+        pipeline.workers: 1
+  
+  # @TODO provide Readme, make sure the configmap is there as it is needed in order to connect to postgres
+  extraVolumes: |
+    - name: postgres-jdbc-jar
+      configMap:
+        name: postgres-jdbc-jar
+    - name: insight-configs-logstash
+      configMap:
+        name: insight-configs-logstash
+
+  extraVolumeMounts: |
+    - name: postgres-jdbc-jar
+      mountPath: /usr/share/extras/jdbc/
+      readOnly: true
+    - name: insight-configs-logstash
+      mountPath: /usr/share/logstash/insight/
+      readOnly: true

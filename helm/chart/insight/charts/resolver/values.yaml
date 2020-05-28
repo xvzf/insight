@@ -1,0 +1,13 @@
+image:
+  repository: quay.io/xvzf/resolver
+  pullPolicy: Always # @TODO update 
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name:
+
+resources: {}

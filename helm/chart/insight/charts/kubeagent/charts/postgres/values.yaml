@@ -1,0 +1,18 @@
+image:
+  repository: postgres
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podSecurityContext: {}
+securityContext: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Size of the ramdisk
+ramdisk:
+  size: 256Mi

@@ -1,0 +1,44 @@
+version: '2'
+
+tasks:
+  default:
+    cmds:
+      - task: go-get
+      - task: go-vet
+      - task: go-test
+
+  go-get:
+    cmds:
+      - go get ./...
+
+  go-vet:
+    cmds:
+      - go vet ./...
+
+  go-test:
+    cmds:
+      - go test -count=1 -race -v -cover ./...
+
+  deploy-staging-aws:
+    cmds:
+      - task: add-postgres-connector-jar
+        vars:
+          namespace: insight
+          cluster: staging-insight-ef4412
+      - task: helm-update-deployment
+        vars:
+          namespace: insight
+          cluster: staging-insight-ef4412
+          deployment_name: insight
+
+  add-postgres-connector-jar:
+    cmds:
+      - curl -fL https://jdbc.postgresql.org/download/postgresql-42.2.9.jar -o /tmp/postgresql-42.2.9.jar
+      - kubectl config set-context {{.cluster}}
+      - kubectl --namespace {{.namespace}} create configmap postgres-jdbc-jar --from-file=/tmp/postgresql-42.2.9.jar || true
+
+  helm-update-deployment:
+    cmds:
+      - kubectl config set-context {{.cluster}}
+      - helm dependency update ./helm/chart/insight
+      - helm upgrade --install --namespace {{.namespace}} -f ./helm/chart/values-{{.cluster}}.yaml {{.deployment_name}} ./helm/chart/insight

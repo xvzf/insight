@@ -1,0 +1,16 @@
+FROM golang:1.13-alpine as builder
+
+WORKDIR /app
+
+copy . .
+
+# Build application
+RUN go get -d -v ./...
+RUN go build cmd/kubeagent/kubeagent.go
+
+
+# Generate a smaller docker image without build dependencies
+FROM alpine:3.11
+
+COPY --from=builder /app/kubeagent /kubeagent
+ENTRYPOINT ["/kubeagent"]
